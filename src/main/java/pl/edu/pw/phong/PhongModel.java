@@ -6,6 +6,8 @@ import pl.edu.pw.geometry.Vector3D;
 
 public class PhongModel {
 
+    private final static double MAX_INTENSITY = 3.0;
+
     private final int width;
     private final int height;
     private final Sphere sphere;
@@ -18,20 +20,14 @@ public class PhongModel {
         this.observer = observer;
     }
 
-    /** Returns double[height][width] */
+    /** Returns double[height][width] with range 0.0-1.0 */
     public double[][] phong(PhongParameters parameters, Point3D light) {
         double[][] result = new double[height][width];
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 try {
-                    Point3D spherePoint = sphere.spherePoint(j, i);
-                    Vector3D L = vectorL(spherePoint, light);
-                    Vector3D N = vectorN(spherePoint);
-                    Vector3D R = vectorR(L, N);
-                    Vector3D V = vectorV(spherePoint);
-
-                    result[i][j] = calculatePixel(parameters, L, N, R, V);
+                    result[i][j] = calculatePixel(parameters, light, j, i);
                 } catch (IllegalArgumentException e) {
                     result[i][j] = 0;
                 }
@@ -39,6 +35,16 @@ public class PhongModel {
         }
 
         return result;
+    }
+
+    private double calculatePixel(PhongParameters parameters, Point3D light, int x, int y) {
+        Point3D spherePoint = sphere.spherePoint(x, y);
+        Vector3D L = vectorL(spherePoint, light);
+        Vector3D N = vectorN(spherePoint);
+        Vector3D R = vectorR(L, N);
+        Vector3D V = vectorV(spherePoint);
+
+        return calculatePixel(parameters, L, N, R, V);
     }
 
     private double calculatePixel(PhongParameters parameters, Vector3D L, Vector3D N, Vector3D R, Vector3D V) {
@@ -51,7 +57,7 @@ public class PhongModel {
         diffuse = diffuse < 0 ? 0 : diffuse;
         specular = specular < 0 ? 0: specular;
 
-        return ambient + diffuse + specular;
+        return (ambient + diffuse + specular)/MAX_INTENSITY;
     }
 
     private Vector3D vectorL(Point3D spherePoint, Point3D light) {
