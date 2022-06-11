@@ -2,6 +2,8 @@ package pl.edu.pw.phong;
 
 public class PhongParameters {
 
+    private String name;
+
     private double ka;
     private double kd;
     private double ks;
@@ -10,7 +12,8 @@ public class PhongParameters {
     private double is;
     private double n;
 
-    public PhongParameters(double ka, double kd, double ks, double ia, double id, double is, double n) {
+    public PhongParameters(double ka, double kd, double ks, double ia, double id, double is,
+        double n) {
         this.ka = ka;
         this.kd = kd;
         this.ks = ks;
@@ -77,5 +80,14 @@ public class PhongParameters {
 
     public void setN(double n) {
         this.n = n;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
