@@ -4,8 +4,7 @@ import java.awt.Color;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.*;
 import pl.edu.pw.geometry.Point3D;
 import pl.edu.pw.geometry.Sphere;
 import pl.edu.pw.phong.PhongModel;
@@ -17,38 +16,42 @@ public class Controller {
     private Canvas canvas;
 
     @FXML
-    private ChoiceBox<PhongParameters> choicebox;
+    private Slider ka;
 
     @FXML
-    private Button generate;
+    private Slider kd;
 
     @FXML
-    private Button left;
+    private Slider ks;
 
     @FXML
-    private Button right;
+    private Spinner<Integer> n;
+
+    @FXML
+    private Spinner<Integer> threadsN;
 
     private Point3D light;
 
     @FXML
     private void initialize() {
         light = new Point3D(0, 0, 0);
-        initializeChoiceBox();
+        initializeSpinners();
         generateCanvas();
     }
 
     @FXML
     private void generateCanvas() {
-//        PhongParameters parameters = new PhongParameters(ka.getValue(), kd.getValue(),
-//            ks.getValue(), 1, 1, 1, n.getValue());
-        int h = 500;
-        int w = 500;
+        PhongParameters parameters = new PhongParameters(ka.getValue(), kd.getValue(),
+            ks.getValue(), 1, 1, 1, n.getValue());
+
+        int h = (int) canvas.getHeight();
+        int w = (int) canvas.getWidth();
         Sphere sphere = new Sphere(new Point3D(h / 2, w / 2, 500), 200);
-        Point3D observer = new Point3D(250, 250, 0);
+        Point3D observer = new Point3D(h/2, w/2, 0);
 
         PhongModel model = new PhongModel(w, h, sphere, observer);
 
-        double[][] result = model.phong(choicebox.getValue(), light);
+        double[][] result = model.phong(parameters, light);
 
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
@@ -77,25 +80,13 @@ public class Controller {
 
         this.light.setX((x * Math.cos(alpha) - y * Math.sin(alpha)) + 250);
         this.light.setY((x * Math.sin(alpha) + y * Math.cos(alpha)) + 250);
-        System.out.println(
-            "Light: x = " + light.getX() + ", y = " + light.getY() + ", z = " + light.getZ());
+//        System.out.println(
+//            "Light: x = " + light.getX() + ", y = " + light.getY() + ", z = " + light.getZ());
     }
 
-    private void initializeChoiceBox() {
-        PhongParameters wall = new PhongParameters(0.6, 1, 0, 1, 1, 1, 1);
-        wall.setName("wall");
-
-        PhongParameters whiteboard = new PhongParameters(0.6, 0.6, 1, 1, 1, 1, 25);
-        whiteboard.setName("whiteboard");
-
-        PhongParameters wood = new PhongParameters(0.6, 0.8, 1, 1, 1, 1, 8);
-        wood.setName("wood");
-
-        PhongParameters plainCartboard = new PhongParameters(0.6, 1, 1, 1, 1, 1, 1);
-        plainCartboard.setName("plain cartboard");
-
-        choicebox.setItems(FXCollections.observableArrayList(wall, whiteboard, wood, plainCartboard));
-        choicebox.setValue(wall);
+    private void initializeSpinners() {
+        n.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 999, 1));
+        threadsN.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 100, 1));
     }
 
 }
