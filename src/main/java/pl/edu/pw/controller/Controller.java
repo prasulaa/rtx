@@ -1,14 +1,15 @@
 package pl.edu.pw.controller;
 
-import java.awt.Color;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
+import javafx.scene.control.Label;
 import pl.edu.pw.geometry.Point3D;
 import pl.edu.pw.geometry.Sphere;
 import pl.edu.pw.phong.PhongModel;
 import pl.edu.pw.phong.PhongParameters;
+
+import java.awt.*;
 
 public class Controller {
 
@@ -30,35 +31,43 @@ public class Controller {
     @FXML
     private Spinner<Integer> threadsN;
 
+    @FXML
+    private Label time;
+
     private Point3D light;
+    private int h;
+    private int w;
+    private PhongModel model;
 
     @FXML
     private void initialize() {
+        h = (int) canvas.getHeight();
+        w = (int) canvas.getWidth();
         light = new Point3D(0, 0, 0);
+
+        Sphere sphere = new Sphere(new Point3D(h / 2, w / 2, 500), w * 0.45);
+        Point3D observer = new Point3D(h / 2, w / 2, 0);
+        model = new PhongModel(w, h, sphere, observer);
+
         initializeSpinners();
         generateCanvas();
     }
 
     @FXML
     private void generateCanvas() {
-        PhongParameters parameters = new PhongParameters(ka.getValue(), kd.getValue(),
-            ks.getValue(), 1, 1, 1, n.getValue());
+        try {
+            PhongParameters parameters = phongParameters();
 
-        int h = (int) canvas.getHeight();
-        int w = (int) canvas.getWidth();
-        Sphere sphere = new Sphere(new Point3D(h / 2, w / 2, 500), 200);
-        Point3D observer = new Point3D(h/2, w/2, 0);
+            long start = System.nanoTime();
+            double[][] result = model.phong(parameters, light, threadsN.getValue());
+            long finish = System.nanoTime();
+            double elapsedTime = ((double) finish - (double) start) / 1e6;
 
-        PhongModel model = new PhongModel(w, h, sphere, observer);
+            time.setText(String.format("%.2f", elapsedTime));
 
-        double[][] result = model.phong(parameters, light);
-
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
-                int intensity = (int) (result[i][j] * 255);
-                canvas.getGraphicsContext2D().getPixelWriter()
-                    .setArgb(j, i, new Color(intensity / 3, intensity / 3, intensity).getRGB());
-            }
+            drawCanvas(result);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -72,6 +81,23 @@ public class Controller {
     private void rotateLightRight() {
         rotateLightAroundAxisZ(0.3);
         generateCanvas();
+    }
+
+    private PhongParameters phongParameters() {
+        return new PhongParameters(
+                ka.getValue(), kd.getValue(), ks.getValue(),
+                1, 1, 1,
+                n.getValue());
+    }
+
+    private void drawCanvas(double[][] result) {
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                int intensity = (int) (result[i][j] * 255);
+                canvas.getGraphicsContext2D().getPixelWriter()
+                        .setArgb(j, i, new Color(intensity / 3, intensity / 3, intensity).getRGB());
+            }
+        }
     }
 
     private void rotateLightAroundAxisZ(double alpha) {
