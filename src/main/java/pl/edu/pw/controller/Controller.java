@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import pl.edu.pw.geometry.Point3D;
 import pl.edu.pw.geometry.Sphere;
 import pl.edu.pw.phong.PhongModel;
@@ -13,7 +14,12 @@ import java.awt.*;
 
 public class Controller {
 
+    public static int h = 700;
+    public static int w = 700;
+
     @FXML
+    private BorderPane borderPane;
+
     private Canvas canvas;
 
     @FXML
@@ -35,18 +41,17 @@ public class Controller {
     private Label time;
 
     private Point3D light;
-    private int h;
-    private int w;
     private PhongModel model;
 
     @FXML
     private void initialize() {
-        h = (int) canvas.getHeight();
-        w = (int) canvas.getWidth();
+        canvas = new Canvas(w, h);
+        borderPane.setCenter(canvas);
+
         light = new Point3D(0, 0, 0);
 
-        Sphere sphere = new Sphere(new Point3D(h / 2, w / 2, 500), w * 0.45);
-        Point3D observer = new Point3D(h / 2, w / 2, 0);
+        Sphere sphere = new Sphere(new Point3D(w / 2, h / 2, w), w * 0.45);
+        Point3D observer = new Point3D(w / 2, h / 2, 0);
         model = new PhongModel(w, h, sphere, observer);
 
         initializeSpinners();

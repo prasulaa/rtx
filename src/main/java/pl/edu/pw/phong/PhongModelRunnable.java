@@ -41,25 +41,48 @@ public class PhongModelRunnable implements Runnable {
     private void phong() {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
+
                 if ((i + j) % threadsAmount == threadNumber) {
-                    try {
-                        result[i][j] = calculatePixel(j, i);
-                    } catch (IllegalArgumentException e) {
-                        result[i][j] = 0;
-                    }
+                    result[i][j] = calculatePixel(j, i);
                 }
+
             }
         }
+
+        // PODZIAL WIERSZOWY
+//        for (int i = 0; i < height; i++) {
+//            for (int j = 0; j < width; j++) {
+//
+//                if (i % threadsAmount == threadNumber) {
+//                    result[i][j] = calculatePixel(j, i);
+//                }
+//
+//            }
+//        }
+
+        // PODZIAL BLOKOWY WIERSZOWY
+//        int start = (int) ((double) height / (double) threadsAmount * (double) threadNumber);
+//        int stop = (int) ((double) height / (double) threadsAmount * (double) (threadNumber + 1));
+//
+//        for (int i = start; i < stop; i++) {
+//            for (int j = 0; j < width; j++) {
+//                result[i][j] = calculatePixel(j, i);
+//            }
+//        }
     }
 
     private double calculatePixel(int x, int y) {
-        Point3D spherePoint = sphere.spherePoint(x, y);
-        Vector3D L = vectorL(spherePoint);
-        Vector3D N = vectorN(spherePoint);
-        Vector3D R = vectorR(L, N);
-        Vector3D V = vectorV(spherePoint);
+        try {
+            Point3D spherePoint = sphere.spherePoint(x, y);
+            Vector3D L = vectorL(spherePoint);
+            Vector3D N = vectorN(spherePoint);
+            Vector3D R = vectorR(L, N);
+            Vector3D V = vectorV(spherePoint);
 
-        return calculatePixel(L, N, R, V);
+            return calculatePixel(L, N, R, V);
+        } catch (IllegalArgumentException e) {
+            return 0;
+        }
     }
 
     private double calculatePixel(Vector3D L, Vector3D N, Vector3D R, Vector3D V) {

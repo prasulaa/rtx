@@ -14,10 +14,7 @@
 
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" scaleShape="false" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.edu.pw.controller.Controller">
    <children>
-      <BorderPane prefHeight="200.0" prefWidth="200.0">
-         <center>
-            <Canvas fx:id="canvas" height="700.0" width="700.0" BorderPane.alignment="CENTER" />
-         </center>
+      <BorderPane fx:id="borderPane" prefHeight="200.0" prefWidth="200.0">
          <right>
             <VBox alignment="CENTER" prefHeight="500.0" prefWidth="200.0" BorderPane.alignment="CENTER">
                <children>
