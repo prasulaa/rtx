@@ -1,5 +1,7 @@
 package pl.edu.pw.controller;
 
+import com.aparapi.Kernel;
+import com.aparapi.Range;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
@@ -8,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import pl.edu.pw.geometry.Point3D;
 import pl.edu.pw.geometry.Sphere;
 import pl.edu.pw.phong.PhongModel;
+import pl.edu.pw.phong.PhongModelGPU;
 import pl.edu.pw.phong.PhongParameters;
 
 import java.awt.*;
@@ -42,6 +45,8 @@ public class Controller {
 
     private Point3D light;
     private PhongModel model;
+    private Sphere sphere;
+    private Point3D observer;
 
     @FXML
     private void initialize() {
@@ -49,9 +54,9 @@ public class Controller {
         borderPane.setCenter(canvas);
 
         light = new Point3D(0, 0, 0);
+        sphere = new Sphere(new Point3D(w / 2, h / 2, w), w * 0.45);
+        observer = new Point3D(w / 2, h / 2, 0);
 
-        Sphere sphere = new Sphere(new Point3D(w / 2, h / 2, w), w * 0.45);
-        Point3D observer = new Point3D(w / 2, h / 2, 0);
         model = new PhongModel(w, h, sphere, observer);
 
         initializeSpinners();
@@ -64,14 +69,15 @@ public class Controller {
             PhongParameters parameters = phongParameters();
 
             long start = System.nanoTime();
-            double[][] result = model.phong(parameters, light, threadsN.getValue());
+            //double[][] result = model.phong(parameters, light, threadsN.getValue());
+            float[][] result = runPhongModelGPU(parameters);
             long finish = System.nanoTime();
             double elapsedTime = ((double) finish - (double) start) / 1e6;
 
             time.setText(String.format("%.2f", elapsedTime));
 
             drawCanvas(result);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -88,11 +94,31 @@ public class Controller {
         generateCanvas();
     }
 
+    private float[][] runPhongModelGPU(PhongParameters parameters) {
+        float[][] result = new float[h][w];
+
+        Kernel kernel = new PhongModelGPU(sphere, observer, parameters, light, result);
+        kernel.execute(Range.create2D(w, h));
+        kernel.dispose();
+
+        return result;
+    }
+
     private PhongParameters phongParameters() {
         return new PhongParameters(
                 ka.getValue(), kd.getValue(), ks.getValue(),
                 1, 1, 1,
                 n.getValue());
+    }
+
+    private void drawCanvas(float[][] result) {
+        for (int i = 0; i < h; i++) {
+            for (int j = 0; j < w; j++) {
+                int intensity = (int) (result[i][j] * 255);
+                canvas.getGraphicsContext2D().getPixelWriter()
+                        .setArgb(j, i, new Color(intensity / 3, intensity / 3, intensity).getRGB());
+            }
+        }
     }
 
     private void drawCanvas(double[][] result) {

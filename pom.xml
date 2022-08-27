@@ -19,6 +19,11 @@
             <artifactId>javafx-fxml</artifactId>
             <version>16</version>
         </dependency>
+        <dependency>
+            <groupId>com.aparapi</groupId>
+            <artifactId>aparapi</artifactId>
+            <version>2.0.0</version>
+        </dependency>
     </dependencies>
 
     <properties>
